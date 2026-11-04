@@ -1,4 +1,5 @@
 import copy
+from contextlib import nullcontext
 import os
 from pathlib import Path
 import tempfile
@@ -287,10 +288,14 @@ class AutopilotWorkflowTests(unittest.TestCase):
             QTest.qWait(5)
         self.assertTrue(predicate(), "Curve detection did not finish")
 
-    def picker(self):
-        self.dialog = CurvePickerDialog(self.window)
-        self.dialog.show()
-        self.wait_until(lambda: self.dialog.progress.isHidden())
+    def picker(self, result=None):
+        # Layout/filter checks can reuse real extraction output while retaining
+        # the worker and queued signal flow, independent of machine load.
+        reader = patch("plot_digitizer.gui.extract_plot_curves", return_value=copy.deepcopy(result)) if result is not None else nullcontext()
+        with reader:
+            self.dialog = CurvePickerDialog(self.window)
+            self.dialog.show()
+            self.wait_until(lambda: self.dialog.progress.isHidden())
         self.app.processEvents()
         return self.dialog
 
@@ -326,7 +331,8 @@ class AutopilotWorkflowTests(unittest.TestCase):
         self.assertEqual(self.window.table.rowCount(), len(selected["pts_real"]) + 1)
 
     def test_add_all_respects_color_filter_and_repeated_imports_have_unique_names(self):
-        dialog = self.picker()
+        result = extract_plot_curves(self.window.canvas.image)
+        dialog = self.picker(result)
         dialog.colors.setCurrentIndex(dialog.colors.findData("Blue"))
         dialog._use_all()
         self.assertEqual(dialog.selected_indices, [1])
@@ -464,10 +470,11 @@ class AutopilotWorkflowTests(unittest.TestCase):
         font.setPointSize(14)
         self.window.setFont(font)
         bounds = QRect(0, 0, 960, 540)
+        result = extract_plot_curves(self.window.canvas.image)
         for language in ("en", "zh"):
             self.window.set_language(language)
             with patch("PySide6.QtGui.QScreen.availableGeometry", return_value=bounds):
-                dialog = self.picker()
+                dialog = self.picker(result)
                 QTest.qWait(40)
                 self.assertTrue(bounds.contains(dialog.frameGeometry()))
                 self.assertEqual(dialog.body_scroll.horizontalScrollBar().maximum(), 0)
