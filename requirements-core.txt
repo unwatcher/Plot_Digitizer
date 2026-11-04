@@ -1,0 +1,4 @@
+# Headless ROI detection, curve extraction and calibration inference.
+# Local OCR is supplied by Windows OCR or a separately installed Tesseract.
+numpy==2.4.6
+opencv-python-headless==4.13.0.92
