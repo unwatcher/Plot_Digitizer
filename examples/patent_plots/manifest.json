@@ -1,0 +1,249 @@
+{
+  "schema_version": 1,
+  "retrieved_utc": "2026-11-01",
+  "rights_reviewed_on": "2026-11-04",
+  "scope": "Four illustrative U.S. utility-patent plot crops from two families, screened against the cited USPTO reuse policy. These are inspected examples/regressions, not a blind validation set. Algorithms receive pixels only; annotations stay outside extraction.",
+  "sources": [
+    {
+      "id": "US8198452B2",
+      "page_url": "https://patents.google.com/patent/US8198452B2/en",
+      "pdf_url": "https://patentimages.storage.googleapis.com/0e/28/6b/3af12e9988c297/US8198452.pdf",
+      "pdf_sha256": "e42ce26e90f5b1cc1aa2c64eeb53b23ddae98cff87b97cfa1bd32d122775cbf9",
+      "family_group": "US8198452B2",
+      "split": "examples",
+      "priority_date": "2006-06-19",
+      "application_number": "US12/305,524",
+      "family_group_basis": "One publication per application/priority lineage; related national publications and grants are not separate test families.",
+      "jurisdiction": "US",
+      "rights_review": {
+        "checked_on": "2026-11-04",
+        "basis": "USPTO patent text/drawing reuse policy, subject to 37 CFR 1.71(d/e) and 1.84(s) exceptions.",
+        "policy_url": "https://www.uspto.gov/terms-use-uspto-websites",
+        "exceptions_url": "https://www.uspto.gov/web/offices/pac/mpep/s608.html",
+        "review": "Full source PDF extracted text searched for copyright, mask-work, no-objection and all-rights-reserved notices; selected original drawing sheets and final plot crops visually inspected. No such notice or embedded brand/logo found in selected plot crops. Instrument footer excluded from cropped spectra.",
+        "notice_search_hits": [],
+        "source_pdf_pages_checked": 25,
+        "classification": "screened-us-utility-patent-drawing",
+        "software_license_applies_to_figure": false
+      }
+    },
+    {
+      "id": "US6583283B1",
+      "page_url": "https://patents.google.com/patent/US6583283B1/en",
+      "pdf_url": "https://patentimages.storage.googleapis.com/90/00/5d/3a4453e649944e/US6583283.pdf",
+      "pdf_sha256": "c091ab5da870cd66d753495e1b7fef6cf8bd7531fb89b23aaf5ad01b74a6348d",
+      "family_group": "US6583283B1",
+      "split": "examples",
+      "priority_date": "1997-10-23",
+      "application_number": "US09/529,865",
+      "family_group_basis": "One publication per application/priority lineage; related national publications and grants are not separate test families.",
+      "jurisdiction": "US",
+      "rights_review": {
+        "checked_on": "2026-11-04",
+        "basis": "USPTO patent text/drawing reuse policy, subject to 37 CFR 1.71(d/e) and 1.84(s) exceptions.",
+        "policy_url": "https://www.uspto.gov/terms-use-uspto-websites",
+        "exceptions_url": "https://www.uspto.gov/web/offices/pac/mpep/s608.html",
+        "review": "Full source PDF extracted text searched for copyright, mask-work, no-objection and all-rights-reserved notices; selected original drawing sheets and final plot crops visually inspected. No such notice or embedded brand/logo found in selected plot crops. Instrument footer excluded from cropped spectra.",
+        "notice_search_hits": [],
+        "source_pdf_pages_checked": 53,
+        "classification": "screened-us-utility-patent-drawing",
+        "software_license_applies_to_figure": false
+      }
+    }
+  ],
+  "cases": [
+    {
+      "id": "us8198452b2-fig1",
+      "file": "us8198452b2-fig1.png",
+      "source_id": "US8198452B2",
+      "figure": "1",
+      "pdf_page_1based": 2,
+      "dpi": 120,
+      "rotation_clockwise": 0,
+      "crop_ltrb": [
+        180,
+        480,
+        850,
+        990
+      ],
+      "modality": "PXRD",
+      "expected_curves": 1,
+      "count_evaluable": true,
+      "topology": "single",
+      "expected_polarity": "up",
+      "plot_bounds": [
+        77,
+        33,
+        644,
+        434
+      ],
+      "expected_preset": "normal",
+      "requires_overlap_review": false,
+      "landmarks": [
+        {
+          "label": "Single trace: visible peaks and baseline anchors",
+          "points": [
+            [
+              108,
+              67
+            ],
+            [
+              217,
+              90
+            ],
+            [
+              238,
+              224
+            ],
+            [
+              470,
+              419
+            ]
+          ],
+          "tolerance_px": 8
+        }
+      ],
+      "sha256": "f0f8e225c5f158f1d50767f72e44f3e53ab972768ac54a49ba03f7cbdba69fbc",
+      "landmark_method": "Visually selected peaks and baseline anchors, snapped to the nearest visible stroke within 18 pixels. Axis lines and tick marks are excluded."
+    },
+    {
+      "id": "us8198452b2-fig4",
+      "file": "us8198452b2-fig4.png",
+      "source_id": "US8198452B2",
+      "figure": "4",
+      "pdf_page_1based": 5,
+      "dpi": 120,
+      "rotation_clockwise": 0,
+      "crop_ltrb": [
+        175,
+        500,
+        875,
+        900
+      ],
+      "modality": "Raman",
+      "expected_curves": 1,
+      "count_evaluable": true,
+      "topology": "single_faint",
+      "expected_polarity": "up",
+      "plot_bounds": [
+        49,
+        42,
+        673,
+        368
+      ],
+      "expected_preset": "normal",
+      "requires_overlap_review": false,
+      "landmarks": [
+        {
+          "label": "Single trace: visible peaks and baseline anchors",
+          "points": [
+            [
+              151,
+              213
+            ],
+            [
+              341,
+              154
+            ],
+            [
+              472,
+              185
+            ],
+            [
+              568,
+              352
+            ]
+          ],
+          "tolerance_px": 8
+        }
+      ],
+      "sha256": "bc53359b9c4b030f275e598deee8c5f4c20e2bdde3cf6e5d5f912e44a0aee1b8",
+      "landmark_method": "Visually selected peaks and baseline anchors, snapped to the nearest visible stroke within 18 pixels. Axis lines and tick marks are excluded."
+    },
+    {
+      "id": "us8198452b2-fig7",
+      "file": "us8198452b2-fig7.png",
+      "source_id": "US8198452B2",
+      "figure": "7",
+      "pdf_page_1based": 8,
+      "dpi": 120,
+      "rotation_clockwise": 0,
+      "crop_ltrb": [
+        180,
+        505,
+        860,
+        891
+      ],
+      "modality": "IR",
+      "expected_curves": 1,
+      "count_evaluable": true,
+      "topology": "single_faint",
+      "expected_polarity": "down",
+      "plot_bounds": [
+        43,
+        36,
+        655,
+        360
+      ],
+      "expected_preset": "transmittance",
+      "requires_overlap_review": false,
+      "landmarks": [
+        {
+          "label": "Single trace: visible peaks and baseline anchors",
+          "points": [
+            [
+              125,
+              200
+            ],
+            [
+              365,
+              332
+            ],
+            [
+              439,
+              348
+            ],
+            [
+              250,
+              41
+            ]
+          ],
+          "tolerance_px": 8
+        }
+      ],
+      "sha256": "c71d98ad6044a831327632b73017cd3214d09437820956a170ea6943746db26b",
+      "landmark_method": "Visually selected peaks and baseline anchors, snapped to the nearest visible stroke within 18 pixels. Axis lines and tick marks are excluded."
+    },
+    {
+      "id": "us6583283b1-fig8",
+      "file": "us6583283b1-fig8.png",
+      "source_id": "US6583283B1",
+      "figure": "8",
+      "pdf_page_1based": 9,
+      "dpi": 120,
+      "rotation_clockwise": 90,
+      "crop_ltrb": [
+        215,
+        100,
+        1155,
+        805
+      ],
+      "modality": "Raman",
+      "expected_curves": 3,
+      "count_evaluable": true,
+      "topology": "stacked",
+      "expected_polarity": "up",
+      "plot_bounds": [
+        39,
+        37,
+        899,
+        624
+      ],
+      "expected_preset": "waterfall",
+      "requires_overlap_review": true,
+      "landmarks": [],
+      "sha256": "821addde13632e47b51dcb6f6686745a59a30366cb9f5f0e3d081cc060c76098",
+      "annotation_note": "Closely spaced strokes or touching peaks require identity review; the bottom trace of WO Fig. 7 partly coincides with the X-axis."
+    }
+  ]
+}
