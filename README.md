@@ -1,4 +1,4 @@
-# PlotDigitizer for AI4S
+# PlotDigitizer
 
 Reviewable scientific figure digitization for PXRD, Raman and IR plots.
 PlotDigitizer turns plot images into numerical curve candidates for scientific
