@@ -1,0 +1,65 @@
+{
+  "source": "examples/patent_plots/us8198452b2-fig1.png",
+  "source_sha256": "f0f8e225c5f158f1d50767f72e44f3e53ab972768ac54a49ba03f7cbdba69fbc",
+  "calibration": {
+    "x": [
+      {
+        "pixel": [
+          76,
+          433
+        ],
+        "value": 3
+      },
+      {
+        "pixel": [
+          600,
+          433
+        ],
+        "value": 60
+      }
+    ],
+    "y": [
+      {
+        "pixel": [
+          77,
+          433
+        ],
+        "value": 0
+      },
+      {
+        "pixel": [
+          77,
+          33
+        ],
+        "value": 20000
+      }
+    ]
+  },
+  "calibration_review": "Printed tick coordinates manually reviewed; linear axes.",
+  "roi": [
+    78,
+    33,
+    643,
+    432
+  ],
+  "preset": "normal",
+  "parameters": {
+    "threshold": 160,
+    "pick": "topmost",
+    "col_step": 1,
+    "suppress_grid": false,
+    "grid_strength": "standard",
+    "min_component_area": 6,
+    "max_gap": 14,
+    "max_jump": 47.879999999999995,
+    "hue_tolerance": 7,
+    "working_scale": [
+      1.0,
+      1.0
+    ]
+  },
+  "observed_points": 563,
+  "smoothing": false,
+  "gap_interpolation": false,
+  "limitation": "One illustrative extraction; not an independent accuracy estimate."
+}

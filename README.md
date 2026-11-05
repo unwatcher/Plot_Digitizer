@@ -6,7 +6,20 @@ comparison, reference libraries and AI4S data preparation. It combines computer
 vision, path tracking and local OCR with visible review of the ROI, axis ticks
 and curve identities. Processing stays on your computer.
 
-## Run the desktop tool
+## Windows downloads
+
+The [Windows preview release](https://github.com/unwatcher/Plot_Digitizer/releases/tag/v0.2.0-preview.1)
+provides two ZIP folders, both including portable Python 3.14.10 x64:
+
+- **Ready-to-run:** extract the full folder and double-click `launch_plot_digitizer.bat`.
+- **Offline wheels:** extract the full folder, run `install_dependencies.bat`, then launch.
+  The installer verifies all 16 local wheels and uses no pip or network access.
+
+No separate Python installation or administrator access is needed. Both packages
+include the source, four screened patent examples, dependency license files and
+SHA-256 metadata. Windows OCR still uses the language support installed in Windows.
+
+## Run from source
 
 Use 64-bit CPython 3.14. From the repository directory:
 
@@ -62,6 +75,18 @@ Calibration is shared across datasets in the current window. Stacked-curve
 offsets are retained as displayed and should be interpreted explicitly.
 
 ## Four patent examples
+
+One example is shown before and after extraction:
+
+| Original PXRD patent plot | Extracted numerical curve |
+| --- | --- |
+| ![Original PXRD figure from US8198452B2](examples/patent_plots/us8198452b2-fig1.png) | ![Automatically extracted PXRD curve](docs/images/pxrd-extracted.png) |
+
+Autopilot chose the Normal preset and threshold 160, retaining 563 observed
+points. Axes in the extracted preview use reviewed printed tick coordinates;
+no smoothing or filling of missing columns is applied. The
+[CSV](examples/pxrd-extracted.csv) and [calibration/settings record](examples/pxrd-extraction.json)
+are included. Recreate the preview with `python scripts/render_example.py`.
 
 Only four U.S. utility-patent plot crops are bundled, from two patent families:
 
@@ -137,6 +162,23 @@ Poppler, then run `python scripts/fetch_patent_plot_corpus.py`. Supply
 downloading documents. CI separately checks the two-dependency headless core and
 the desktop on Windows, Ubuntu and macOS. Remote CI and platform-native OCR
 results must be assessed separately from local Windows checks.
+
+## Building Windows packages
+
+On Windows, use native CPython 3.14 to download the pinned wheels and build both
+portable package variants:
+
+```text
+python -m pip download --only-binary=:all: --require-hashes -r release/windows/requirements-offline.txt --dest .cache/wheelhouse
+python scripts/build_windows_release.py --wheelhouse .cache/wheelhouse --source-revision YOUR_COMMIT_SHA
+```
+
+The builder downloads portable Python only from the pinned official URL and
+verifies the checksum published by Python.org. It tests the actual extracted
+ZIP contents before writing `SHA256SUMS.txt` and `release-manifest.json` under
+`dist/`. Python/dependency licenses are retained inside each package. Release
+uploads use GitHub Actions; existing tags or assets that belong to another
+revision are never overwritten.
 
 ## License
 
