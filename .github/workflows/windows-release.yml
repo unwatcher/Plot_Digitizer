@@ -2,7 +2,7 @@ name: Build and publish Windows packages
 
 on:
   push:
-    branches: [codex/windows-release-packages]
+    tags: ['v*']
   workflow_dispatch:
 
 permissions:
@@ -25,6 +25,19 @@ jobs:
         with:
           python-version: '3.14'
           cache: pip
+      - name: Verify pushed release tag
+        if: github.event_name == 'push'
+        shell: python
+        run: |
+          import json
+          import os
+          from pathlib import Path
+
+          version = json.loads(Path('release/windows/config.json').read_text(encoding='utf-8'))['version']
+          expected_ref = 'refs/tags/v' + version
+          actual_ref = os.environ['GITHUB_REF']
+          if actual_ref != expected_ref:
+              raise SystemExit(f'Release tag {actual_ref!r} does not match configured version {expected_ref!r}.')
       - name: Install test dependencies
         run: python -m pip install -r requirements.txt
       - name: Test source and installer failure handling
