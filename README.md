@@ -18,6 +18,18 @@ the **local REST API**. No account, cloud upload or API key is needed.
 
 **Open Image → Auto-calibration → Auto Extraction → Review and Export**
 
+## Workflow demo
+
+![PlotDigitizer image-to-export workflow, including calibration review, curve extraction, manual mode and CSV export](docs/images/workflow-demo.gif)
+
+A **22-second walkthrough** of a real Windows source build: open the bundled
+PXRD figure, review calibration and extracted points, switch modes, then export
+563 calibrated rows. The top-left mode toggle is newer than the published
+v0.3.0-preview.1 ZIPs. [Demo steps, recording details and exported CSV](docs/workflow-demo.md).
+
+<details>
+<summary>PXRD before/after and reference data</summary>
+
 | Original PXRD patent plot | Extracted numerical curve |
 | --- | --- |
 | ![Original PXRD figure from US8198452B2](examples/patent_plots/us8198452b2-fig1.png) | ![Automatically extracted PXRD curve](docs/images/pxrd-extracted.png) |
@@ -28,6 +40,8 @@ calibration and no smoothing or filling of missing columns.
 [calibration/settings record](examples/pxrd-extraction.json), or try the
 [four bundled examples](#four-patent-examples). It illustrates one extraction;
 it is not an independent accuracy benchmark.
+
+</details>
 
 ## Why use PlotDigitizer?
 

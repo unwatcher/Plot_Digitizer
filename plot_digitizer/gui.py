@@ -1866,12 +1866,13 @@ class MainWindow(QMainWindow):
         available=self.width() - margins.left() - margins.right()
         columns=4 if available >= required else 2
         button_sizes=[button.minimumSizeHint() for button in self.workflow_buttons]
+        self.manual_options_button.ensurePolished()
         manual_size=self.manual_options_button.minimumSizeHint()
         metrics=self.manual_options_button.fontMetrics()
         padding=2 * metrics.horizontalAdvance(" ")
         mode_text_width=max(metrics.horizontalAdvance(self._tr(label))
                             for label in ("Manual mode", "Automatic mode"))
-        manual_size.setWidth(max(manual_size.width(), mode_text_width + 2 * padding))
+        manual_size.setWidth(max(manual_size.width(), mode_text_width + 2 * padding + 16))
         manual_size.setHeight(max(manual_size.height(), metrics.height() + padding))
         geometry_key=(columns, available, tuple((size.width(), size.height()) for size in button_sizes),
                       manual_size.width(), manual_size.height(), self.controls_scroll.isHidden())
@@ -1891,7 +1892,8 @@ class MainWindow(QMainWindow):
         for button, size in zip(self.workflow_buttons, button_sizes):
             button.setMinimumSize(size)
             button.updateGeometry()
-        self.manual_options_button.setMinimumSize(manual_size)
+        self.manual_options_button.setFixedWidth(manual_size.width())
+        self.manual_options_button.setMinimumHeight(manual_size.height())
         self.manual_options_button.updateGeometry()
         self.action_grid.invalidate()
         self.action_bar.setMinimumHeight(self.action_grid.minimumSize().height())

@@ -1,0 +1,36 @@
+{
+  "software_repository": "https://github.com/unwatcher/Plot_Digitizer",
+  "recorded_source_commit": "a39ed1ebe3a25a5fc67a2d31391344327eb24b2f",
+  "platform": "Windows x64",
+  "language": "en",
+  "source_image": "examples/patent_plots/us8198452b2-fig1.png",
+  "source_sha256": "f0f8e225c5f158f1d50767f72e44f3e53ab972768ac54a49ba03f7cbdba69fbc",
+  "calibration": {
+    "method": "Local Windows OCR; reviewed proposals applied unchanged",
+    "x_scale": "linear",
+    "x_points": 7,
+    "y_scale": "linear",
+    "y_points": 2
+  },
+  "extraction": {
+    "preset": "Normal scan",
+    "dark_threshold": 160,
+    "selected_candidate": 0,
+    "observed_points": 563
+  },
+  "csv": "examples/workflow-demo.csv",
+  "csv_sha256": "33bba93d3c7b4634c535fc1638d628d6fb92a138b952adb413ee10f10c69625d",
+  "animation": {
+    "file": "docs/images/workflow-demo.gif",
+    "size": [
+      1120,
+      920
+    ],
+    "frames": 13,
+    "duration_ms": 22000,
+    "bytes": 1504695,
+    "loop": true,
+    "editing": "Condensed native app keyframes with captions and an actual-CSV closing card; local file pickers omitted"
+  },
+  "limitation": "One reviewed example, not an independent accuracy or speed benchmark"
+}
