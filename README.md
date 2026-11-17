@@ -18,18 +18,6 @@ the **local REST API**. No account, cloud upload or API key is needed.
 
 **Open Image → Auto-calibration → Auto Extraction → Review and Export**
 
-## Workflow demo
-
-![PlotDigitizer image-to-export workflow, including calibration review, curve extraction, manual mode and CSV export](docs/images/workflow-demo.gif)
-
-A **22-second walkthrough** of a real Windows source build: open the bundled
-PXRD figure, review calibration and extracted points, switch modes, then export
-563 calibrated rows. The top-left mode toggle is newer than the published
-v0.3.0-preview.1 ZIPs. [Demo steps, recording details and exported CSV](docs/workflow-demo.md).
-
-<details>
-<summary>PXRD before/after and reference data</summary>
-
 | Original PXRD patent plot | Extracted numerical curve |
 | --- | --- |
 | ![Original PXRD figure from US8198452B2](examples/patent_plots/us8198452b2-fig1.png) | ![Automatically extracted PXRD curve](docs/images/pxrd-extracted.png) |
@@ -41,8 +29,6 @@ calibration and no smoothing or filling of missing columns.
 [four bundled examples](#four-patent-examples). It illustrates one extraction;
 it is not an independent accuracy benchmark.
 
-</details>
-
 ## Why use PlotDigitizer?
 
 Autopilot detects the plot region, proposes axis calibration and extraction
@@ -51,7 +37,7 @@ settings, and previews curve candidates for review before export.
 - **Extraction for spectra:** grid handling, stacked traces and downward IR dips,
   with linear, logarithmic and decreasing axes.
 - **Review built into the workflow:** visible ROI/tick markers, curve overlays,
-  overlap diagnostics and manual recovery in one expandable section.
+  overlap diagnostics and manual recovery in a resizable sidebar.
 - **Scientific software handoff:** PXRD XRDML export plus CSV/JSON; source pixels
   and calibrated values remain distinct in API responses.
 - **Local operation:** no account, cloud upload, API key or model download. The
@@ -71,6 +57,14 @@ opens a resizable controls sidebar on the left, with the image/data preview on
 the right. The same button becomes **Automatic mode** and restores the full-width
 preview. Switching modes preserves the image, calibration, datasets, selected
 dataset and preview tab. The image and point table have separate tabs.
+
+| [Automatic mode](docs/images/automatic-mode.png) | [Manual mode](docs/images/manual-mode.png) |
+| --- | --- |
+| ![Automatic mode with the full-width plot and extracted curve overlay](docs/images/automatic-mode.png) | ![Manual mode with controls on the left and the plot on the right](docs/images/manual-mode.png) |
+
+Click either screenshot to view it at full size. These source-build screenshots
+show the mode toggle added after the v0.3.0-preview.1 ZIPs.
+[Workflow steps and exported CSV](docs/workflow-demo.md).
 
 Autopilot uses multiple threshold trials and trace continuity, with presets for
 normal plots, grids, stacked curves and IR transmittance. It retains observed

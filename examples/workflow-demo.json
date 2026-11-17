@@ -20,17 +20,26 @@
   },
   "csv": "examples/workflow-demo.csv",
   "csv_sha256": "33bba93d3c7b4634c535fc1638d628d6fb92a138b952adb413ee10f10c69625d",
-  "animation": {
-    "file": "docs/images/workflow-demo.gif",
-    "size": [
-      1120,
-      920
-    ],
-    "frames": 13,
-    "duration_ms": 22000,
-    "bytes": 1504695,
-    "loop": true,
-    "editing": "Condensed native app keyframes with captions and an actual-CSV closing card; local file pickers omitted"
-  },
-  "limitation": "One reviewed example, not an independent accuracy or speed benchmark"
+  "limitation": "One reviewed example, not an independent accuracy or speed benchmark",
+  "screenshots": [
+    {
+      "file": "docs/images/automatic-mode.png",
+      "mode": "automatic",
+      "size": [
+        1102,
+        750
+      ],
+      "sha256": "9ad42b8b115f589e7afa116d8946530c8628b2220264eee17b19385a259415a5"
+    },
+    {
+      "file": "docs/images/manual-mode.png",
+      "mode": "manual",
+      "size": [
+        1102,
+        750
+      ],
+      "sha256": "9185e048815357d4acd8ce1f566915eb1035ab19be33b354bf88cc922ee36d33"
+    }
+  ],
+  "presentation": "Unmodified native desktop screenshots from the CSV-export session."
 }
