@@ -98,8 +98,8 @@ SHA-256 metadata. Windows OCR still uses the language support installed in Windo
 
 ## Run from source
 
-Use 64-bit CPython 3.14 on Windows, macOS or Linux. Clone the repository
-(or extract its source ZIP), then create an environment:
+PlotDigitizer supports Windows and Linux with 64-bit CPython 3.14. Clone the
+repository (or extract its source ZIP), then create a virtual environment.
 
 ```text
 git clone https://github.com/unwatcher/Plot_Digitizer.git
@@ -108,7 +108,7 @@ python -m venv .venv
 ```
 
 Activate the environment (`.venv\Scripts\activate` on Windows or
-`source .venv/bin/activate` on macOS/Linux), then run:
+`source .venv/bin/activate` on Linux), then run the following commands.
 
 ```text
 python -m pip install -r requirements.txt
@@ -118,7 +118,7 @@ python plot_digitizer_auto.py
 The existing `plot_digitizer_auto.py` entry point is preserved. Source is
 organized in `plot_digitizer/`; no CrystalTrace installation or catalog is
 required. Windows uses its installed OCR language support. If that engine
-fails, an installed Tesseract on PATH is used. macOS/Linux need Tesseract for
+fails, an installed Tesseract on PATH is used. Linux needs Tesseract for
 automatic axis suggestions. Manual calibration works without OCR.
 
 ## Handling difficult figures manually
@@ -243,9 +243,8 @@ not complete curve accuracy or calibrated scientific values.
 To recreate the four input crops from their original PDFs, install Pillow and
 Poppler, then run `python scripts/fetch_patent_plot_corpus.py`. Supply
 `--pdftoppm /path/to/pdftoppm` if necessary. Tests use bundled PNGs without
-downloading documents. CI separately checks the two-dependency headless core and
-the desktop on Windows, Ubuntu and macOS. Remote CI and platform-native OCR
-results must be assessed separately from local Windows checks.
+downloading documents. CI checks the two-dependency headless core on Ubuntu
+and the desktop on Windows and Ubuntu. Verify native OCR on the target platform.
 
 ## Building Windows packages
 
