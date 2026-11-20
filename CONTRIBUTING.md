@@ -43,7 +43,7 @@ Activate `.venv` using the command for your shell:
 | --- | --- |
 | Windows PowerShell | `.venv\Scripts\Activate.ps1` |
 | Windows Command Prompt | `.venv\Scripts\activate.bat` |
-| macOS/Linux | `source .venv/bin/activate` |
+| Linux (Bash) | `source .venv/bin/activate` |
 
 Then install dependencies and launch:
 
@@ -55,8 +55,8 @@ python plot_digitizer_auto.py
 For headless extraction and API work, install `requirements-core.txt` instead
 of the desktop requirements. Start the API with `python -m plot_digitizer.api`;
 see the [API guide](docs/API.md). Automatic calibration uses installed Windows
-OCR language support, with Tesseract as a fallback. macOS/Linux need Tesseract
-for automatic OCR; manual calibration does not require it.
+OCR language support, with Tesseract as a fallback. Linux needs Tesseract
+for automatic OCR. Manual calibration works without it.
 
 ## Verify a change
 
@@ -85,7 +85,7 @@ For documentation-only changes, check links, commands and rendered Markdown.
 For UI changes, include a screenshot and the manual workflow you exercised.
 For release packaging changes, follow the
 [Windows build and archive verification steps](README.md#building-windows-packages).
-CI checks the core and the desktop on Windows, Ubuntu and macOS.
+CI checks the headless core on Ubuntu and the desktop on Windows and Ubuntu.
 
 ## Keep scientific outputs reviewable
 

@@ -19,7 +19,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-24.04, macos-15-intel]
+        os: [windows-latest, ubuntu-24.04]
     runs-on: ${{ matrix.os }}
     env:
       QT_QPA_PLATFORM: offscreen
