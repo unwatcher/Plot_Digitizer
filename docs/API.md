@@ -72,6 +72,41 @@ for curve in result["candidates"]:
     print(curve["id"], curve["label"], len(curve["points"]), curve["separation"])
 ~~~
 
+## PowerShell quickstart
+
+With the service running, open a second PowerShell terminal in the repository
+root. This example uses only built-in PowerShell and .NET commands:
+
+~~~powershell
+$baseUrl = 'http://127.0.0.1:8765'
+Invoke-RestMethod -Uri "$baseUrl/health"
+
+$imagePath = (Resolve-Path 'examples/patent_plots/us8198452b2-fig1.png').Path
+$payload = @{
+    image_base64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes($imagePath))
+} | ConvertTo-Json
+
+$result = Invoke-RestMethod -Method Post -Uri "$baseUrl/v1/extract" `
+    -ContentType 'application/json' -Body $payload -TimeoutSec 120
+
+New-Item -ItemType Directory -Path output -Force | Out-Null
+$result | ConvertTo-Json -Depth 100 |
+    Set-Content -Encoding utf8 output/curves-powershell.json
+
+"Candidates: $(@($result.candidates).Count)"
+"Coordinates: $($result.coordinate_system)"
+~~~
+
+`ConvertTo-Json` defaults to a depth of 2. Use `-Depth 100` when saving the
+response so nested candidate objects, point arrays and diagnostics stay JSON
+objects and arrays rather than becoming strings. The request here is shallow
+and does not need that increased depth.
+
+Without reviewed calibration, `coordinate_system` is `image_pixels` and
+candidate `points` are source-image pixel coordinates, not scientific axis
+values. Review the extracted curves and calibration before using numeric
+results; see the calibration workflow below.
+
 ## Review calibration, then request numeric values
 
 `points` always contains source-image pixels: the origin is at the top left and
