@@ -1,7 +1,7 @@
 """Scientific-plot extraction, presets and ROI detection without GUI dependencies.
 
-Adapted from Plot_Digitizer by unwatcher (BSD 3-Clause License).
-See THIRD_PARTY_NOTICES.md for the retained license and attribution.
+Adapted from Plot_Digitizer by unwatcher (MIT License).
+See LICENSE and THIRD_PARTY_NOTICES.md for license and attribution details.
 Inputs and returned samples use RGB uint8 images and source-image pixel coordinates.
 The extraction heuristics do not provide calibrated accuracy probabilities.
 """

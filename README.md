@@ -3,7 +3,7 @@
 **Offline plot digitizer for PXRD, Raman and infrared spectroscopy.**
 
 [![Regression checks](https://github.com/unwatcher/Plot_Digitizer/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/unwatcher/Plot_Digitizer/actions/workflows/tests.yml)
-[![License: BSD 3-Clause](https://img.shields.io/badge/License-BSD_3--Clause-blue.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 Recover curves from scientific plot images and export **CSV, JSON or
 HighScore-compatible XRDML**. Review automatic axis calibration and curve
@@ -155,7 +155,7 @@ Only four U.S. utility-patent plot crops are bundled, from two patent families:
 The [example provenance and reuse note](examples/README.md) records the selection
 basis. The manifest includes source PDF URLs/hashes, page/crop/rotation details,
 notice checks and sparse visual landmarks. No WIPO/Australian figures or supplied
-clipboard scans are included. The software's BSD license is separate from the
+clipboard scans are included. The software's MIT License is separate from the
 figure reuse basis.
 
 These are inspected examples and regression checks, not an independent accuracy
@@ -283,6 +283,6 @@ extraction settings. Cite source figures separately where applicable.
 
 ## License
 
-The existing [BSD 3-Clause license](LICENSE), copyright 2026 unwatcher, is retained.
+PlotDigitizer is distributed under the [MIT License](LICENSE). Copyright (c) 2026 unwatcher.
 See [third-party notices](THIRD_PARTY_NOTICES.md) and the separate
 [patent figure reuse note](examples/README.md).
