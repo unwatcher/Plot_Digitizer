@@ -19,7 +19,7 @@ hashes, page numbers, rendering resolution, rotation and crop rectangles are in
 `patent_plots/manifest.json`. Plots retain the scientific labels and axes.
 
 This is a documented policy-based selection of U.S. patent drawings. The figures
-are not relabeled CC0 or relicensed under the software BSD license. The review
+are not relabeled CC0 or relicensed under the software's MIT License. The review
 does not assert a blanket worldwide public-domain status or grant rights to
 practice any patented invention. Additions to this directory need their own
 source and reuse review; public online availability alone is insufficient.

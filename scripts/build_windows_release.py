@@ -175,7 +175,7 @@ def release_notes(repository, revision):
             "| ![Original patent plot](" + base + "/example-pxrd-original.png) | ![Extracted curve](" + base + "/example-pxrd-extracted.png) |\n\n"
             "The preview contains " + str(point_count) + " observed points with reviewed printed-axis calibration. No smoothing or filling of missing columns is applied. The CSV and settings record are included.\n\n"
             "Four U.S. patent examples are bundled with source/reuse documentation. Same-color crossings, missed OCR labels and nonuniform axes can require manual correction; automatic diagnostics are not calibrated confidence probabilities. Windows OCR requires installed language support.\n\n"
-            "See `SHA256SUMS.txt` and `release-manifest.json` for checksums and build provenance. Source uses the existing BSD 3-Clause license; Python/dependency licenses and the separate figure reuse note are included.\n")
+            "See `SHA256SUMS.txt` and `release-manifest.json` for checksums and build provenance. PlotDigitizer software is licensed under MIT; Python/dependency licenses and the separate figure reuse note are included.\n")
 
 
 def build(wheelhouse, cache, output, revision, repository="unwatcher/Plot_Digitizer"):

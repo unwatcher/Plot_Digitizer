@@ -2,7 +2,7 @@
 """
 PlotDigitizer GUI — PySide6 + Matplotlib + OpenCV
 
-Adapted from Plot_Digitizer by unwatcher (BSD 3-Clause License):
+Adapted from Plot_Digitizer by unwatcher (MIT License):
 https://github.com/unwatcher/Plot_Digitizer
 
 The CrystalTrace catalog integration adds direct, project-specific reference import.

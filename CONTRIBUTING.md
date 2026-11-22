@@ -107,5 +107,5 @@ Recreate the scientific before/after example with
 from the bundled figure and CSV; see [social preview assets](docs/social-preview.md).
 
 Contributions are distributed under the repository's
-[BSD 3-Clause license](LICENSE). Source figures retain their separate reuse
+[MIT License](LICENSE). Source figures retain their separate reuse
 terms. Keep discussion respectful and focused on reproducible behavior.

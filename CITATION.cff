@@ -9,7 +9,7 @@ authors:
     website: "https://github.com/unwatcher"
 repository-code: "https://github.com/unwatcher/Plot_Digitizer"
 url: "https://github.com/unwatcher/Plot_Digitizer"
-license: BSD-3-Clause
+license: MIT
 abstract: >-
   Offline scientific plot digitizer for PXRD, Raman and infrared spectroscopy,
   with OCR-assisted axis calibration, reviewable automatic curve extraction,
