@@ -36,8 +36,9 @@ settings, and previews curve candidates for review before export.
 
 - **Extraction for spectra:** grid handling, stacked traces and downward IR dips,
   with linear, logarithmic and decreasing axes.
-- **Review built into the workflow:** visible ROI/tick markers, curve overlays,
-  overlap diagnostics and manual recovery in a resizable sidebar.
+- **Review built into the workflow:** edit or move calibration ticks on the
+  image, then select an extracted point in the curve or table to see its
+  original source pixel.
 - **Scientific software handoff:** PXRD XRDML export plus CSV/JSON; source pixels
   and calibrated values remain distinct in API responses.
 - **Local operation:** no account, cloud upload, API key or model download. The
@@ -52,19 +53,18 @@ settings, and previews curve candidates for review before export.
 | **Auto Extraction** | Separates colored/neutral traces, tries contrast/grid handling, and chooses upward-peak or downward-dip sampling. | Select curves and inspect the overlay/overlap regions. |
 | **Export** | Writes CSV, JSON or PXRD XRDML. | Choose the format for your analysis workflow. |
 
-The four actions stay at the bottom. The **Manual mode** toggle at the top left
-opens a resizable controls sidebar on the left, with the image/data preview on
-the right. The same button becomes **Automatic mode** and restores the full-width
-preview. Switching modes preserves the image, calibration, datasets, selected
-dataset and preview tab. The image and point table have separate tabs.
+The four actions stay at the bottom. In **Guided canvas**, open **Manual
+options** to edit the calibration table, drag a tick on the image or nudge it
+by one source pixel. Apply the calibration to update the extracted coordinates.
+In **Linked review**, selecting a point in the plot or table highlights the
+same sample and shows its location in the original image.
 
-| [Automatic mode](docs/images/automatic-mode.png) | [Manual mode](docs/images/manual-mode.png) |
+| [Guided canvas and calibration bench](docs/images/calibration-bench.png) | [Linked review](docs/images/linked-review.png) |
 | --- | --- |
-| ![Automatic mode with the full-width plot and extracted curve overlay](docs/images/automatic-mode.png) | ![Manual mode with controls on the left and the plot on the right](docs/images/manual-mode.png) |
+| [![PXRD source image with extracted trace, tick markers and editable calibration table](docs/images/calibration-bench.png)](docs/images/calibration-bench.png) | [![Calibrated PXRD curve with a selected peak, highlighted table row and source-pixel detail](docs/images/linked-review.png)](docs/images/linked-review.png) |
 
-Click either screenshot to view it at full size. These source-build screenshots
-show the mode toggle added after the v0.3.0-preview.1 ZIPs.
-[Workflow steps and exported CSV](docs/workflow-demo.md).
+These screenshots show the current source build. The v0.3.0-preview.1 ZIPs
+contain the earlier desktop layout. [Workflow steps and exported CSV](docs/workflow-demo.md).
 
 Autopilot uses multiple threshold trials and trace continuity, with presets for
 normal plots, grids, stacked curves and IR transmittance. It retains observed
@@ -214,7 +214,9 @@ bounded image working resolution and local-OCR timeouts are supported.
 | `digitizer_core.py` | ROI, presets, curve extraction and separation diagnostics |
 | `axis_ocr.py` | Local OCR adapters, word boxes and subprocess lifecycle |
 | `axis_calibration.py` | Numeric parsing, observed-tick matching and fit validation |
-| `gui.py` | Qt workers, review/correction and optional host integration |
+| `gui.py` | Qt desktop, guided canvas and extraction workflow |
+| `digitizer_calibration_bench.py` | Editable tick table and calibration drafts |
+| `digitizer_linked_review.py` | Synchronized curve, point table and source-image detail |
 | `exports.py` | Headless XRDML writer shared by GUI and API |
 | `api.py` | Local HTTP socket, request validation and workflow responses |
 

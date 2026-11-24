@@ -1,21 +1,99 @@
 {
   "software_repository": "https://github.com/unwatcher/Plot_Digitizer",
-  "recorded_source_commit": "a39ed1ebe3a25a5fc67a2d31391344327eb24b2f",
+  "recorded_source_commit": "1e961c9977df6cdd799d77539d6981fac78d061d",
   "platform": "Windows x64",
+  "qt_version": "6.11.2",
   "language": "en",
   "source_image": "examples/patent_plots/us8198452b2-fig1.png",
   "source_sha256": "f0f8e225c5f158f1d50767f72e44f3e53ab972768ac54a49ba03f7cbdba69fbc",
   "calibration": {
-    "method": "Local Windows OCR; reviewed proposals applied unchanged",
-    "x_scale": "linear",
-    "x_points": 7,
-    "y_scale": "linear",
-    "y_points": 2
+    "method": "Local Windows OCR; accepted proposals applied unchanged",
+    "axes": {
+      "x": {
+        "scale": "linear",
+        "points": [
+          {
+            "pixel": [
+              76.0,
+              433.0
+            ],
+            "value": 3.0
+          },
+          {
+            "pixel": [
+              141.0,
+              433.0
+            ],
+            "value": 10.0
+          },
+          {
+            "pixel": [
+              233.0,
+              433.0
+            ],
+            "value": 20.0
+          },
+          {
+            "pixel": [
+              324.0,
+              433.0
+            ],
+            "value": 30.0
+          },
+          {
+            "pixel": [
+              416.0,
+              433.0
+            ],
+            "value": 40.0
+          },
+          {
+            "pixel": [
+              509.0,
+              433.0
+            ],
+            "value": 50.0
+          },
+          {
+            "pixel": [
+              600.0,
+              433.0
+            ],
+            "value": 60.0
+          }
+        ]
+      },
+      "y": {
+        "scale": "linear",
+        "points": [
+          {
+            "pixel": [
+              77.0,
+              33.0
+            ],
+            "value": 20000.0
+          },
+          {
+            "pixel": [
+              77.0,
+              233.0
+            ],
+            "value": 10000.0
+          }
+        ]
+      }
+    }
   },
   "extraction": {
-    "preset": "Normal scan",
+    "preset": "normal",
     "dark_threshold": 160,
     "selected_candidate": 0,
+    "roi": [
+      78,
+      33,
+      643,
+      432
+    ],
     "observed_points": 563
   },
   "csv": "examples/workflow-demo.csv",
@@ -23,23 +101,23 @@
   "limitation": "One reviewed example, not an independent accuracy or speed benchmark",
   "screenshots": [
     {
-      "file": "docs/images/automatic-mode.png",
-      "mode": "automatic",
+      "file": "docs/images/calibration-bench.png",
+      "view": "Guided canvas and calibration bench",
       "size": [
-        1102,
-        750
+        1380,
+        850
       ],
-      "sha256": "9ad42b8b115f589e7afa116d8946530c8628b2220264eee17b19385a259415a5"
+      "sha256": "0af1c265815fc479c0d7bc855edb24a629386173870776eb696e6b55d6b3d67b"
     },
     {
-      "file": "docs/images/manual-mode.png",
-      "mode": "manual",
+      "file": "docs/images/linked-review.png",
+      "view": "Linked review at the strongest peak",
       "size": [
-        1102,
-        750
+        1380,
+        850
       ],
-      "sha256": "9185e048815357d4acd8ce1f566915eb1035ab19be33b354bf88cc922ee36d33"
+      "sha256": "f2c47d866b4d991db7b9a82c96b08a4a92f7d8eed3b6361d709ec08ed39c9eb0"
     }
   ],
-  "presentation": "Unmodified native desktop screenshots from the CSV-export session."
+  "presentation": "Qt widget captures of the Windows application from the CSV-export session."
 }
