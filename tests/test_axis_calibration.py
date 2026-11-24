@@ -16,7 +16,7 @@ import numpy as np
 from PySide6.QtCore import QRect, Qt, QTimer
 from PySide6.QtGui import QFont
 from PySide6.QtTest import QTest
-from PySide6.QtWidgets import QApplication, QDialog
+from PySide6.QtWidgets import QApplication, QDialog, QLineEdit
 
 from plot_digitizer.axis_calibration import (
     _axis_geometry, _consistent_axis_pairs, calibration_coefficients,
@@ -85,6 +85,50 @@ class AxisInferenceTests(unittest.TestCase):
             ticks = _axis_geometry(gray, (42, 22, 399, 228), axis)["ticks"]
             for value in expected:
                 self.assertLess(min(abs(tick["point"][coordinate] - value) for tick in ticks), 1.1)
+
+    def test_faint_outward_ticks_keep_zero_and_resolve_a_visible_decimal(self):
+        gray = np.full((160, 220), 255, np.uint8)
+        cv2.line(gray, (53, 20), (53, 140), 125, 1)
+        cv2.line(gray, (53, 140), (200, 140), 125, 1)
+        cv2.line(gray, (53, 20), (200, 20), 125, 1)
+        for y in (22, 80, 138):
+            cv2.line(gray, (50, y), (53, y), 140, 1)
+        for x in (91, 131, 171):
+            cv2.line(gray, (x, 136), (x, 140), 140, 1)
+        for x in (53, 200):
+            cv2.line(gray, (x, 140), (x, 145), 125, 1)
+        # The OCR output drops a faint, isolated dot from the top label.
+        gray[18:23, 38:41] = 110
+        gray[18:23, 44:47] = 110
+        gray[22, 42] = 195
+        # An OCR word near the frame has no attached tick at this height.
+        gray[108:112, 45:47] = 110
+
+        def word(text, y, x=43):
+            return {"text": text, "x": 24 + 2 * (x - 6), "y": 24 + 2 * (y - 5),
+                    "width": 24, "height": 12}
+
+        words = [word("20", 22), word("1.0", 80), word("0.5", 109), word("0.0", 138)]
+        words += [word(text, 150, x) for text, x in (("10", 91), ("20", 131), ("30", 171))]
+
+        def recognize(_images, _cancelled):
+            return {"full": {"words": words, "engine": "Test OCR"}}
+
+        def suggest():
+            return suggest_axis_calibration(cv2.cvtColor(gray, cv2.COLOR_GRAY2RGB),
+                                            (53, 20, 199, 139), ocr_reader=recognize)["axes"]
+
+        axes = suggest()
+        self.assertEqual([(point["value"], point["pixel"][0]) for point in axes["x"]["points"]],
+                         [(10.0, 91), (20.0, 131), (30.0, 171)])
+        result = axes["y"]
+        self.assertEqual([(point["value"], point["pixel"][1]) for point in result["points"]],
+                         [(2.0, 22), (1.0, 80), (0.0, 138)])
+        self.assertEqual(result["points"][0]["text"], "20")
+        self.assertEqual(result["rejected"], [])
+        gray[22, 42] = 255
+        result = suggest()["y"]
+        self.assertTrue(all(point["value"] != 2.0 for point in result["points"] + result["rejected"]))
 
     def test_blank_image_does_not_invent_labels_or_call_ocr(self):
         image = np.full((200, 300, 3), 255, np.uint8)
@@ -184,6 +228,39 @@ class AxisCalibrationReviewTests(unittest.TestCase):
             self.window._apply_reviewed_calibration(reviewed)
         self.assertEqual(self.window.canvas.datasets, before)
         self.assertAlmostEqual(self.window.canvas._calib_ax, 1)
+
+    def test_use_all_and_correcting_ocr_enables_apply_with_more_than_fifteen_ticks(self):
+        result = proposal()
+        points = [{"pixel": [40 + 18 * i, 220], "value": 100 * i} for i in range(18)]
+        result["axes"]["x"].update(points=points[:-1], scale_conflict=True,
+                                   rejected=[{**points[-1], "value": 100, "text": "100"}])
+        dialog = self.create_dialog(result)
+        self.assertFalse(dialog.apply_button.isEnabled())
+        self.assertIn("Use column", dialog.error.text())
+        self.assertIs(dialog.error.parentWidget(), dialog)
+
+        dialog.bench.use_all_checks["x"].click()
+        self.assertFalse(dialog.apply_button.isEnabled())
+        self.assertIn("increase or decrease consistently", dialog.error.text())
+        self.assertTrue(dialog.bench.use_all_checks["y"].isChecked())
+
+        table = dialog.tables["x"]
+        item = table.item(17, 3)
+        table.scrollToItem(item)
+        table.setCurrentItem(item)
+        table.editItem(item)
+        editor = QApplication.focusWidget()
+        self.assertIsInstance(editor, QLineEdit)
+        editor.selectAll()
+        QTest.keyClicks(editor, "1,700")
+        self.assertTrue(dialog.apply_button.isEnabled())
+        dialog.apply_button.click()
+        self.assertEqual(dialog.result(), QDialog.Accepted)
+        self.window._apply_reviewed_calibration(dialog.reviewed, editor=dialog.bench)
+        self.assertEqual(self.window.spin_nx.value(), 18)
+        self.assertEqual(self.window.x_calib_table.rowCount(), 18)
+        self.assertEqual(self.window.canvas.x_calib_vals[-1], 1700)
+        self.assertFalse(self.window.calibration_bench.dirty)
 
     def test_semi_log_x_is_applied_without_changing_y_to_log(self):
         reviewed = proposal(); reviewed["axes"]["x"]["scale"] = "log"

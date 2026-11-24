@@ -71,11 +71,11 @@ def _axis_geometry(gray, roi, axis):
             distance = abs(slope * (top + bottom) / 2 + intercept - left)
             choices.append((distance, -dy, slope, intercept))
     if not choices:
-        return {"found": False, "ticks": [], "line": None}
+        return {"found": False, "ticks": [], "outward_ticks": [], "inward_ticks": [], "line": None}
     _, _, slope, intercept = min(choices)
     start, end = (left, right) if axis == "x" else (top, bottom)
     start, end = max(0, start - radius), min(width if axis == "x" else height, end + radius)
-    strength = []
+    strengths, lower_strengths, upper_strengths = [], [], []
     tick_radius = max(7, round(min(right - left, bottom - top) * .025))
     kernel = max(15, round(span * .035)) | 1
     support = cv2.blur(mask.astype(np.float32), (kernel, 1) if axis == "x" else (1, kernel))
@@ -84,8 +84,8 @@ def _axis_geometry(gray, roi, axis):
         extent = height if axis == "x" else width
         lower, upper = max(0, position - 7), min(extent, position + 8)
         values = support[lower:upper, coordinate] if axis == "x" else support[coordinate, lower:upper]
-        exclude_left, exclude_right = position - 2, position + 2
-        if len(values):
+        line_first = line_last = position
+        if len(values) and values.max() > 0:
             nearby = np.arange(lower, upper)
             index = int(np.argmax(values - .1 * np.abs(nearby - position)))
             position = int(nearby[index])
@@ -95,75 +95,106 @@ def _axis_geometry(gray, roi, axis):
                 lo -= 1
             while hi + 1 < len(values) and values[hi + 1] >= cutoff:
                 hi += 1
-            exclude_left, exclude_right = int(nearby[lo]) - 1, int(nearby[hi]) + 1
+            line_first, line_last = int(nearby[lo]), int(nearby[hi])
         if axis == "x":
             sample = mask[max(0, position - tick_radius):min(height, position + tick_radius + 1), coordinate]
         else:
             sample = mask[coordinate, max(0, position - tick_radius):min(width, position + tick_radius + 1)]
         # Only count pixels away from the line's own thickness.
         sample_start = max(0, position - tick_radius)
-        before = sample[:max(0, exclude_left - sample_start)]
-        after = sample[max(0, exclude_right - sample_start + 1):]
-        strength.append(max(int(np.count_nonzero(before)), int(np.count_nonzero(after))))
-    strength = np.asarray(strength)
-    ticks = []
-    for group in _ranges(strength >= 2):
-        if len(group) > max(9, span * .012):
-            continue
-        position = float(start + np.average(group, weights=strength[group]))
-        point = [position, slope * position + intercept] if axis == "x" else [slope * position + intercept, position]
-        ticks.append({"point": point, "strength": int(strength[group].max())})
-    return {"found": True, "ticks": ticks, "line": [float(slope), float(intercept)]}
+        before = sample[:max(0, line_first - 1 - sample_start)]
+        after = sample[max(0, line_last + 2 - sample_start):]
+        strengths.append(max(int(np.count_nonzero(before)), int(np.count_nonzero(after))))
+        # Follow connected ink on both sides of the frame. A disconnected
+        # letter or trace segment must not contribute to this stroke length.
+        for edge, step, runs in ((line_first, -1, lower_strengths), (line_last, 1, upper_strengths)):
+            rim = edge - sample_start
+            run = 0
+            if 0 <= rim < len(sample) and sample[rim]:
+                ray = sample[rim + 1:] if step > 0 else sample[:rim][::-1]
+                gaps = np.flatnonzero(ray == 0)
+                run = int(gaps[0]) if len(gaps) else len(ray)
+            runs.append(run)
+    geometry = {"found": True, "line": [float(slope), float(intercept)]}
+    outward, inward = (upper_strengths, lower_strengths) if axis == "x" else (lower_strengths, upper_strengths)
+    for key, values in (("ticks", strengths), ("outward_ticks", outward), ("inward_ticks", inward)):
+        strength = np.asarray(values)
+        peaks = []
+        for group in _ranges(strength >= 2):
+            if len(group) > max(9, span * .012):
+                continue
+            position = float(start + np.average(group, weights=strength[group]))
+            point = [position, slope * position + intercept] if axis == "x" else [slope * position + intercept, position]
+            peaks.append({"point": point, "strength": int(strength[group].max())})
+        geometry[key] = peaks
+    return geometry
 
 
 def _consistent_axis_pairs(pairs, axis):
-    """Reject OCR outliers using tick positions and linear/log consistency."""
+    """Resolve competing OCR readings by fitting distinct observed ticks."""
     coordinate = 0 if axis == "x" else 1
     pairs = sorted(pairs, key=lambda pair: pair["pixel"][coordinate])
-    # One OCR word may have competed for a tick. Prefer the closest label.
-    unique = {}
+    groups = []
+    group_start = -math.inf
     for pair in pairs:
-        key = round(pair["pixel"][coordinate], 1)
-        if key not in unique or pair["label_distance"] < unique[key]["label_distance"]:
-            unique[key] = pair
-    by_value = {}
-    for pair in unique.values():
+        position = pair["pixel"][coordinate]
+        if position - group_start > 1:
+            groups.append({})
+            group_start = position
+        readings = groups[-1]
         value = pair["value"]
-        if value not in by_value or pair["label_distance"] < by_value[value]["label_distance"]:
-            by_value[value] = pair
-    pairs = sorted(by_value.values(), key=lambda pair: pair["pixel"][coordinate])
-    if len(pairs) < 2:
-        return {"points": pairs, "scale": "linear", "fit_error_px": None, "rejected": []}
+        if value not in readings or pair["label_distance"] < readings[value]["label_distance"]:
+            readings[value] = pair
+    nearest = [min(readings.values(), key=lambda pair: pair["label_distance"]) for readings in groups]
+    if len(groups) < 2:
+        return {"points": nearest, "scale": "linear", "fit_error_px": None, "rejected": []}
+    pairs = [pair for readings in groups for pair in readings.values()]
+    tick_ids = np.repeat(np.arange(len(groups)), [len(readings) for readings in groups])
     pixels = np.array([pair["pixel"][coordinate] for pair in pairs])
     values = np.array([pair["value"] for pair in pairs])
+    distances = np.array([pair["label_distance"] for pair in pairs])
     tolerance = max(3, float(np.ptp(pixels)) * .012)
     best = None
     for scale in ("linear", "log"):
-        if scale == "log" and (len(pairs) < 3 or np.any(values <= 0)):
+        if scale == "log" and (len(groups) < 3 or np.any(values <= 0)):
             continue
         transformed = np.log10(values) if scale == "log" else values
         for i, j in itertools.combinations(range(len(pairs)), 2):
-            if transformed[j] == transformed[i]:
+            if tick_ids[i] == tick_ids[j] or transformed[j] == transformed[i]:
                 continue
             slope = (pixels[j] - pixels[i]) / (transformed[j] - transformed[i])
             predicted = pixels[i] + (transformed - transformed[i]) * slope
-            inliers = np.abs(predicted - pixels) <= tolerance
-            error = float(np.mean(np.abs(predicted[inliers] - pixels[inliers])))
-            score = (int(inliers.sum()), -error, scale == "linear")
+            residuals = np.abs(predicted - pixels)
+            inliers = np.flatnonzero(residuals <= tolerance)
+            if len(inliers) < (best[0][0] if best is not None else 2):
+                continue
+            # Each position and numeric value may support the fit only once.
+            chosen, used_ticks, used_values = [], set(), set()
+            for index in sorted(inliers, key=lambda k: (residuals[k], distances[k])):
+                tick, value = tick_ids[index], values[index]
+                if tick not in used_ticks and value not in used_values:
+                    chosen.append(index)
+                    used_ticks.add(tick)
+                    used_values.add(value)
+            if len(chosen) < 2:
+                continue
+            score = (len(chosen), -float(np.mean(residuals[chosen])),
+                     -float(np.mean(distances[chosen])), scale == "linear")
             if best is None or score > best[0]:
-                best = (score, inliers, scale)
+                best = (score, sorted(chosen), scale)
     if best is None:
-        return {"points": [], "scale": "linear", "fit_error_px": None, "rejected": pairs}
-    _, inliers, scale = best
-    selected = [pair for pair, keep in zip(pairs, inliers) if keep]
-    if len(pairs) >= 3 and len(selected) < 3:
-        return {"points": [], "scale": scale, "fit_error_px": None, "rejected": pairs}
+        return {"points": [], "scale": "linear", "fit_error_px": None, "rejected": nearest}
+    _, indices, scale = best
+    selected = [pairs[index] for index in indices]
+    if len(groups) >= 3 and len(selected) < 3:
+        return {"points": [], "scale": scale, "fit_error_px": None, "rejected": nearest}
     vals = np.array([pair["value"] for pair in selected])
     coords = np.array([pair["pixel"][coordinate] for pair in selected])
     transformed = np.log10(vals) if scale == "log" else vals
     coefficients = np.polyfit(transformed, coords, 1)
     error = float(np.sqrt(np.mean((np.polyval(coefficients, transformed) - coords) ** 2)))
-    rejected = [pair for pair, keep in zip(pairs, inliers) if not keep]
+    used_ticks = set(tick_ids[indices])
+    rejected = [pair for tick, pair in enumerate(nearest) if tick not in used_ticks]
     heights = [pair["label_box"][3] for pair in selected if "label_box" in pair]
     typical_height = float(np.median(heights)) if heights else None
     distinct_rejected = [pair for pair in rejected
@@ -172,11 +203,11 @@ def _consistent_axis_pairs(pairs, axis):
                          and all(abs(pair["pixel"][coordinate] - accepted["pixel"][coordinate]) > 3
                                  for accepted in selected)]
     return {"points": selected, "scale": scale, "fit_error_px": error,
-            "scale_conflict": len(distinct_rejected) >= 2 and len(distinct_rejected) >= len(pairs) * .20,
+            "scale_conflict": len(distinct_rejected) >= 2 and len(distinct_rejected) >= len(groups) * .20,
             "rejected": rejected}
 
 
-def _tick_near_label(gray, geometry, axis, center, label_size):
+def _tick_near_label(gray, geometry, axis, center, label_size, label_box):
     """Find a local tick peak above the axis stroke's background thickness.
 
     A faint or wavy axis can join otherwise separate ticks in a global binary
@@ -194,10 +225,12 @@ def _tick_near_label(gray, geometry, axis, center, label_size):
     strengths = []
     for position in range(start, end):
         at = round(slope * position + intercept)
+        # Search the space between label and frame. Broken tick strokes may
+        # survive there, but the printed digits are not tick evidence.
         if axis == "x":
-            sample = gray[max(0, at + 3):min(height, at + ray), position]
+            sample = gray[max(0, at + 2):min(height, at + ray, math.floor(label_box[1])), position]
         else:
-            sample = gray[position, max(0, at - ray):max(0, at - 2)]
+            sample = gray[position, max(0, at - ray, math.ceil(label_box[0] + label_box[2])):max(0, at - 1)]
         strengths.append(int(np.count_nonzero(sample < 215)))
     signal = np.asarray(strengths, dtype=float)
     if not signal.size:
@@ -218,6 +251,68 @@ def _tick_near_label(gray, geometry, axis, center, label_size):
         return None
     _, point, strength = max(choices)
     return {"point": point, "strength": strength}
+
+
+def _label_only_box(gray, box, axis):
+    """Separate a horizontal tick-label band from the axis title where possible."""
+    x0, y0, x1, y1 = box
+    ink = gray[y0:y1, x0:x1] < 220
+    if axis == "y":
+        columns = np.flatnonzero(ink.any(axis=0))
+        gaps = np.flatnonzero(np.diff(columns) >= max(6, round(ink.shape[0] * .015)))
+        if len(gaps):
+            # Preserve whitespace around the right-aligned tick labels.
+            x0 += int(columns[gaps[-1] + 1]) - 3
+    else:
+        bands = _ranges(np.count_nonzero(ink, axis=1) >= max(3, ink.shape[1] * .02))
+        band = next((band for band in bands if len(band) >= 3), None)
+        if band is not None:
+            y0, y1 = y0 + max(0, int(band[0]) - 1), min(y1, y0 + int(band[-1]) + 2)
+    return x0, y0, x1, y1
+
+
+def _match_axis_tick(gray, geometry, axis, center, label_size, label_box):
+    coordinate = 0 if axis == "x" else 1
+    tolerance = max(7, label_size * .65)
+    outward, inward = geometry["outward_ticks"], geometry["inward_ticks"]
+    sides = (inward, outward) if len(outward) < 3 <= len(inward) else (outward, inward)
+
+    def distance(tick):
+        return abs(tick["point"][coordinate] - center[coordinate])
+
+    for side in sides:
+        tick = min(side, key=distance, default=None)
+        if tick is not None and distance(tick) <= tolerance:
+            return tick
+    tick = _tick_near_label(gray, geometry, axis, center, label_size, label_box)
+    if tick is None and max(len(outward), len(inward)) < 3:
+        tick = min(geometry["ticks"], key=distance, default=None)
+    if tick is not None and distance(tick) <= tolerance:
+        return tick
+    return None
+
+
+def _decimal_reading(gray, box, text):
+    """Allow a dropped decimal only when its printed dot is visible."""
+    if not re.fullmatch(r"\d{2}", text):
+        return None
+    x, y, width, height = box
+    crop = gray[max(0, math.floor(y)):math.ceil(y + height),
+                max(0, math.floor(x)):math.ceil(x + width)]
+    if not crop.size:
+        return None
+    _, _, components, _ = cv2.connectedComponentsWithStats(np.uint8(crop < 205))
+    if len(components) != 4:
+        return None
+    left, dot, right = sorted(components[1:], key=lambda component: component[0])
+    glyph_height = min(left[3], right[3])
+    dot_bottom = dot[1] + dot[3]
+    if (glyph_height >= 4 and max(dot[2], dot[3]) <= max(1, glyph_height // 3)
+            and left[0] + left[2] <= dot[0] and dot[0] + dot[2] <= right[0]
+            and all(abs(glyph[1] + glyph[3] - dot_bottom) <= max(1, glyph_height // 5)
+                    for glyph in (left, right))):
+        return float(text[0] + "." + text[1])
+    return None
 
 
 def suggest_axis_calibration(image, roi, cancelled=None, ocr_reader=None):
@@ -245,6 +340,22 @@ def suggest_axis_calibration(image, roi, cancelled=None, ocr_reader=None):
     gray = cv2.cvtColor(image, cv2.COLOR_RGB2GRAY)
     geometry = {axis: _axis_geometry(gray, (left, top, right, bottom), axis) for axis in ("x", "y")}
     strips, mapping, label_bands = {}, {}, {}
+
+    def add_view(name, box, max_scale, *, enhance=False):
+        x0, y0, x1, y1 = box
+        crop = (gray if enhance else image)[y0:y1, x0:x1]
+        scale = min(max_scale, 2450 / max(crop.shape[:2]))
+        resized = cv2.resize(crop, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
+        if enhance:
+            # Boost faint strokes while retaining gray levels around tiny dots.
+            resized = cv2.normalize(resized, None, 0, 255, cv2.NORM_MINMAX)
+            resized = cv2.convertScaleAbs(cv2.subtract(resized, 40), alpha=1.21)
+            resized = cv2.cvtColor(resized, cv2.COLOR_GRAY2RGB)
+        border = 24
+        strips[name] = cv2.copyMakeBorder(resized, border, border, border, border,
+                                          cv2.BORDER_CONSTANT, value=(255, 255, 255))
+        mapping[name] = (x0, y0, scale, border)
+
     for axis in ("x", "y"):
         line = geometry[axis]["line"]
         if line is None:
@@ -261,27 +372,24 @@ def suggest_axis_calibration(image, roi, cancelled=None, ocr_reader=None):
         x0, y0, x1, y1 = box
         if x1 <= x0 or y1 <= y0:
             continue
-        crop = image[y0:y1, x0:x1]
-        scale = min(3.5, 2450 / max(crop.shape[:2]))
-        resized = cv2.resize(crop, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
-        border = 24
-        strips[axis] = cv2.copyMakeBorder(resized, border, border, border, border, cv2.BORDER_CONSTANT, value=(255, 255, 255))
-        mapping[axis] = (x0, y0, scale, border)
+        add_view(axis, box, 3.5)
+        labels = _label_only_box(gray, box, axis)
+        if labels != box or axis == "y":
+            add_view(axis + "_labels", labels, 3.5, enhance=axis == "y")
         label_bands[axis] = box
     if not strips:
         return {"axes": {axis: {"points": [], "scale": "linear", "rejected": [], "fit_error_px": None} for axis in ("x", "y")},
                 "roi": tuple(roi), "engine": None, "review_required": True, "ready": False}
     # Full-plot context can recognize labels missed in isolated strips. Match
     # its words only inside the same axis-label bands, excluding plot content.
-    scale = min(2.0, 2450 / max(height, width))
-    resized = cv2.resize(image, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
-    strips["full"] = cv2.copyMakeBorder(resized, 24, 24, 24, 24, cv2.BORDER_CONSTANT, value=(255, 255, 255))
-    mapping["full"] = (0, 0, scale, 24)
+    add_view("full", (0, 0, width, height), 2.0)
     recognized = (ocr_reader or read_local_ocr)(strips, cancelled)
     axes = {}
     for axis in ("x", "y"):
         pairs = []
-        for view in (axis, "full"):
+        if cancelled():
+            raise InterruptedError("Axis detection cancelled")
+        for view in (axis, axis + "_labels", "full"):
             if view not in recognized or axis not in label_bands:
                 continue
             x0, y0, scale, border = mapping[view]
@@ -289,28 +397,30 @@ def suggest_axis_calibration(image, roi, cancelled=None, ocr_reader=None):
                 value = parse_axis_number(word["text"])
                 if value is None:
                     continue
-                center = [x0 + (float(word["x"]) + float(word["width"]) / 2 - border) / scale,
-                          y0 + (float(word["y"]) + float(word["height"]) / 2 - border) / scale]
+                label_box = [x0 + (float(word["x"]) - border) / scale,
+                             y0 + (float(word["y"]) - border) / scale,
+                             float(word["width"]) / scale, float(word["height"]) / scale]
+                center = [label_box[0] + label_box[2] / 2, label_box[1] + label_box[3] / 2]
                 bx0, by0, bx1, by1 = label_bands[axis]
                 if not (bx0 <= center[0] <= bx1 and by0 <= center[1] <= by1):
                     continue
                 coordinate = 0 if axis == "x" else 1
-                label_size = float(word["width"] if axis == "x" else word["height"]) / scale
-                tick = _tick_near_label(gray, geometry[axis], axis, center, label_size)
+                label_size = label_box[coordinate + 2]
+                tick = _match_axis_tick(gray, geometry[axis], axis, center, label_size, label_box)
                 if tick is None:
-                    ticks = geometry[axis]["ticks"]
-                    if not ticks:
-                        continue
-                    tick = min(ticks, key=lambda candidate: abs(candidate["point"][coordinate] - center[coordinate]))
-                distance = abs(tick["point"][coordinate] - center[coordinate])
-                if distance > max(7, label_size * .65):
                     continue
+                distance = abs(tick["point"][coordinate] - center[coordinate])
                 pairs.append({"pixel": list(map(float, tick["point"])), "value": value,
                               "text": str(word["text"]),
-                              "label_box": [x0 + (float(word["x"]) - border) / scale,
-                                            y0 + (float(word["y"]) - border) / scale,
-                                            float(word["width"]) / scale, float(word["height"]) / scale],
+                              "label_box": label_box,
                               "label_distance": float(distance), "tick_observed": True})
+        if any(re.search(r"[.,]\d{1,2}$", pair["text"].strip()) for pair in pairs):
+            alternatives = []
+            for pair in pairs:
+                decimal = _decimal_reading(gray, pair["label_box"], pair["text"].strip())
+                if decimal is not None and decimal != pair["value"]:
+                    alternatives.append({**pair, "value": decimal})
+            pairs.extend(alternatives)
         axes[axis] = _consistent_axis_pairs(pairs, axis)
         axes[axis]["ticks_found"] = max(len(geometry[axis]["ticks"]), len(axes[axis]["points"]))
     return {"axes": axes, "roi": tuple(roi), "engine": next(iter(recognized.values()))["engine"] if recognized else None,
