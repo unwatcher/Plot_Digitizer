@@ -6,6 +6,7 @@ import json
 import os
 from pathlib import Path
 import tempfile
+from types import SimpleNamespace
 import unittest
 from unittest.mock import Mock, patch
 import xml.etree.ElementTree as ET
@@ -15,7 +16,7 @@ os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 import cv2
 import numpy as np
 from PySide6.QtCore import QPoint, QRect, Qt
-from PySide6.QtGui import QFont
+from PySide6.QtGui import QFont, QPalette
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication, QDialog, QFileDialog, QMessageBox, QPushButton
 
@@ -66,71 +67,115 @@ class AutomaticWorkflowUiTests(unittest.TestCase):
         result = extract_plot_curves(self.window.canvas.image)
         self.window._import_autopilot_curves(result, [0])
 
-    def test_default_view_has_four_bottom_actions_and_full_width_preview(self):
+    def test_default_view_has_four_bottom_actions_and_collapsed_manual_controls(self):
         self.assertEqual([button.text() for button in self.window.workflow_buttons],
                          ["Open Image…", "Auto-calibration…", "Auto Extraction…", "Export…"])
         self.assertEqual(len(self.window.action_bar.findChildren(QPushButton)), 4)
         self.assertFalse(self.window.manual_options_button.isChecked())
-        self.assertEqual(self.window.manual_options_button.text(), "Manual mode")
         self.assertTrue(self.window.controls_scroll.isHidden())
         self.assertFalse(self.window.x_calib_table.isVisible())
         self.assertFalse(self.window.export_button.isEnabled())
         self.assertTrue(self.window.canvas.isVisible())
 
-    def test_switching_modes_preserves_image_calibration_datasets_and_selected_tab(self):
+    def test_expanding_manual_options_preserves_calibration_and_extracted_data(self):
         self.prepare_curves()
-        image=self.window.canvas.image
-        roi=copy.deepcopy(self.window.canvas.roi)
         before = copy.deepcopy(self.window.canvas.datasets)
         coefficients = self.window.canvas._calib_ax, self.window.canvas._calib_ay
-        self.window.canvas.active_ds=0
-        self.window.preview_tabs.setCurrentIndex(1)
-        self.window.slider_dark.setValue(147)
         self.window.manual_options_button.click()
         QTest.qWait(20)
         self.assertTrue(self.window.controls_scroll.isVisible())
-        self.assertEqual(self.window.manual_options_button.text(), "Automatic mode")
-        self.assertEqual(self.window.preview_tabs.currentIndex(), 1)
+        self.assertEqual(self.window.manual_options_button.arrowType(), Qt.DownArrow)
         self.window.manual_options_button.click()
         QTest.qWait(20)
         self.assertTrue(self.window.controls_scroll.isHidden())
-        self.assertEqual(self.window.manual_options_button.text(), "Manual mode")
-        self.assertIs(self.window.canvas.image, image)
-        self.assertEqual(self.window.canvas.roi, roi)
+        self.assertEqual(self.window.manual_options_button.arrowType(), Qt.RightArrow)
         self.assertEqual(self.window.canvas.datasets, before)
         self.assertEqual((self.window.canvas._calib_ax, self.window.canvas._calib_ay), coefficients)
-        self.assertEqual(self.window.canvas.active_ds, 0)
-        self.assertEqual(self.window.preview_tabs.currentIndex(), 1)
-        self.assertEqual(self.window.slider_dark.value(), 147)
 
-    def test_manual_sidebar_preserves_preview_height_and_toggle_position(self):
-        preview_height=self.window.preview_tabs.height()
-        preview_width=self.window.preview_tabs.width()
-        position=self.window.manual_options_button.mapTo(self.window.centralWidget(), QPoint(0, 0))
-        button_size=self.window.manual_options_button.size()
-        self.window.manual_options_button.click()
-        QTest.qWait(40)
-        controls=self.window.controls_scroll
-        preview=self.window.preview_tabs
-        self.assertEqual(self.window.workspace_splitter.orientation(), Qt.Horizontal)
-        self.assertLess(controls.geometry().right(), preview.geometry().left())
-        self.assertEqual(controls.geometry().top(), preview.geometry().top())
-        self.assertEqual(preview.height(), preview_height)
-        self.assertEqual(controls.height(), preview_height)
-        self.assertLess(preview.width(), preview_width)
-        self.assertEqual(self.window.manual_options_button.mapTo(self.window.centralWidget(), QPoint(0, 0)), position)
-        self.assertEqual(self.window.manual_options_button.size(), button_size)
-        self.assertLess(self.window.mode_bar.geometry().bottom(), self.window.workspace_splitter.geometry().top())
-        self.window.workspace_splitter.setSizes([320, 654])
-        QTest.qWait(20)
-        sidebar_width=controls.width()
-        self.window.manual_options_button.click()
-        QTest.qWait(20)
-        self.assertEqual(preview.width(), preview_width)
-        self.assertEqual(preview.height(), preview_height)
-        self.window.manual_options_button.click()
-        QTest.qWait(20)
-        self.assertAlmostEqual(controls.width(), sidebar_width, delta=2)
+    def test_extraction_opens_linked_review_and_bench_edits_reach_exports(self):
+        self.prepare_curves()
+        window = self.window
+        self.assertIs(window.preview_tabs.currentWidget(), window.linked_review)
+        self.assertEqual(window.preview_tabs.tabText(1), "Linked review")
+        self.assertEqual(window.linked_review._line.get_color(),
+                         window.palette().color(QPalette.Active, QPalette.Highlight).name())
+        dataset = window.canvas.datasets[-1]
+        pixels = copy.deepcopy(dataset["pts_px"])
+        before = np.array(dataset["pts_real"])
+        window.linked_review.select_point(window.canvas.active_ds, 17)
+        window.manual_options_button.click()
+        self.assertEqual(window.preview_tabs.currentIndex(), 0)
+        self.assertEqual(window.canvas.review_point, (window.canvas.active_ds, 17))
+        bench = window.calibration_bench
+        bench.tables["x"].item(1, 3).setText("85")
+        self.assertTrue(bench.dirty)
+        self.assertFalse(window.export_button.isEnabled())
+        self.assertTrue(all(not a.isEnabled() for a in window._file_export_actions))
+        np.testing.assert_array_equal(dataset["pts_real"], before)
+        window.manual_options_button.click()
+        window.manual_options_button.click()
+        self.assertEqual(bench.tables["x"].item(1, 3).text(), "85")
+        bench.apply_button.click()
+        self.assertFalse(bench.dirty)
+        self.assertTrue(window.export_button.isEnabled())
+        self.assertEqual(dataset["pts_px"], pixels)
+        expected = np.column_stack((5 + (np.array(pixels)[:, 0] - 40) * 80 / 260, before[:, 1]))
+        np.testing.assert_allclose(dataset["pts_real"], expected)
+        self.assertEqual(window.linked_review.selected_point(), (window.canvas.active_ds, 17))
+        self.assertAlmostEqual(float(window.table.item(17, 1).text()), expected[17, 0], places=4)
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "corrected.csv"
+            with patch.object(QFileDialog, "getSaveFileName", return_value=(str(path), "")), patch.object(QMessageBox, "information"):
+                window._export_csv()
+            with path.open(newline="") as handle:
+                rows = list(csv.DictReader(handle))
+            np.testing.assert_allclose([[float(row["x"]), float(row["y"])] for row in rows], expected)
+
+    def test_dragging_a_tick_changes_only_the_draft_until_applied(self):
+        self.prepare_curves()
+        window = self.window
+        window.manual_options_button.click()
+        canvas, bench = window.canvas, window.calibration_bench
+        def mouse(x, y):
+            return SimpleNamespace(inaxes=canvas.ax, button=1, xdata=x, ydata=y)
+        canvas.draw()
+        canvas._on_press(mouse(300, 190))
+        canvas._on_motion(mouse(290, 188))
+        canvas._on_release(mouse(290, 188))
+        self.assertEqual(bench.selection(), ("x", 1))
+        self.assertEqual(bench.reviewed_axes()["x"]["points"][1]["pixel"], [290, 188])
+        self.assertEqual(canvas.x_calib_pts[1], [300, 190])
+        self.assertFalse(window.export_button.isEnabled())
+        full = canvas.ax.get_xlim()
+        window.tick_zoom.click()
+        zoomed = canvas.ax.get_xlim()
+        self.assertLess(zoomed[1] - zoomed[0], (full[1] - full[0]) / 2)
+        self.assertLessEqual(zoomed[0], 290)
+        self.assertGreaterEqual(zoomed[1], 290)
+        window.tick_zoom.click()
+        np.testing.assert_allclose(canvas.ax.get_xlim(), full)
+        bench.revert_button.click()
+        self.assertTrue(window.export_button.isEnabled())
+        bench.pick_button.click()
+        canvas._on_press(mouse(292, 189))
+        bench.apply_button.click()
+        self.assertEqual(canvas.x_calib_pts[1], [292, 189])
+
+    def test_scheme_menu_is_local_and_preserves_source_and_selection(self):
+        self.prepare_curves()
+        window = self.window
+        window.linked_review.select_point(window.canvas.active_ds, 9)
+        original = window.canvas.image.copy()
+        app_base = self.app.palette().color(QPalette.Base)
+        with patch.object(window._scheme_settings, "setValue") as save:
+            for key, base in (("graphite", "#18242d"), ("paper", "#ffffff")):
+                window.scheme_actions[key].trigger()
+                self.assertTrue(window.scheme_actions[key].isChecked())
+                self.assertEqual(window.palette().color(QPalette.Base).name(), base)
+                save.assert_called_with("appearance/scheme", key)
+                self.assertEqual(self.app.palette().color(QPalette.Base), app_base)
+                self.assertEqual(window.linked_review.selected_point(), (window.canvas.active_ds, 9))
+                np.testing.assert_array_equal(window.canvas.image, original)
 
     def test_bottom_actions_apply_reviewed_calibration_and_import_detected_curves(self):
         self.window.canvas.image = plot_image()
@@ -197,21 +242,16 @@ class AutomaticWorkflowUiTests(unittest.TestCase):
         self.window._clear_dataset()
         self.assertFalse(self.window.export_button.isEnabled())
 
-    def test_language_switch_preserves_the_mode_and_updates_the_toggle(self):
+    def test_language_switch_keeps_manual_options_collapsed(self):
         self.window.set_language("zh")
-        self.assertEqual(self.window.manual_options_button.text(), "手动模式")
+        self.assertEqual(self.window.manual_options_button.text(), "手动选项")
         self.assertEqual(self.window.auto_calibration_button.text(), "自动校准…")
         self.assertEqual(self.window.autopilot_button.text(), "自动提取…")
         self.assertEqual(self.window.export_menu.actions()[0].text(), "导出 CSV…")
         self.assertEqual(self.window.preview_tabs.tabText(1), "数字化数据")
         self.assertTrue(self.window.controls_scroll.isHidden())
-        self.window.manual_options_button.click()
-        self.assertEqual(self.window.manual_options_button.text(), "自动模式")
         self.window.set_language("en")
-        self.assertEqual(self.window.manual_options_button.text(), "Automatic mode")
-        self.assertTrue(self.window.controls_scroll.isVisible())
-        self.window.manual_options_button.click()
-        self.assertEqual(self.window.manual_options_button.text(), "Manual mode")
+        self.assertEqual(self.window.manual_options_button.text(), "Manual options")
 
     def test_actions_remain_visible_at_small_sizes_and_large_fonts(self):
         font = QFont(self.window.font())
@@ -250,7 +290,7 @@ class AutomaticWorkflowUiTests(unittest.TestCase):
                         manual=self.window.manual_options_button
                         metrics=manual.fontMetrics()
                         self.assertGreaterEqual(manual.width(), metrics.horizontalAdvance(manual.text())
-                                                + 2 * metrics.horizontalAdvance(" "))
+                                                + manual.iconSize().width() + 2 * metrics.horizontalAdvance(" "))
                         if expanded:
                             self.assertEqual(self.window.controls_scroll.horizontalScrollBar().maximum(), 0)
 

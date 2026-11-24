@@ -137,6 +137,9 @@ class WindowsReleaseTests(unittest.TestCase):
         self.assertIn("LICENSE", files)
         self.assertIn("docs/images/pxrd-extracted.png", files)
         self.assertIn("examples/pxrd-extracted.csv", files)
+        for path in ("docs/images/calibration-bench.png", "docs/images/linked-review.png",
+                     "examples/workflow-demo.csv", "examples/workflow-demo.json"):
+            self.assertIn(path, files)
         for path in ("plot_digitizer/api.py", "plot_digitizer/exports.py", "release/windows/api_launcher.py",
                      "release/windows/launch_api.bat", "docs/API.md"):
             self.assertIn(path, files)

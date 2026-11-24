@@ -1,22 +1,18 @@
 # Image-to-export walkthrough
 
-These static screenshots show the Windows desktop application after extracting
-the bundled PXRD example. Automatic mode keeps the plot full-width; Manual mode
-puts the controls in a resizable sidebar while retaining the preview height.
+These screenshots show one Windows desktop session extracting and reviewing
+the bundled PXRD example. The [session metadata](../examples/workflow-demo.json)
+records the source revision and the calibration, extraction and capture details.
+Follow [Run from source](../README.md#run-from-source) to try this workspace.
+The published v0.3.0-preview.1 Windows ZIPs contain the earlier layout.
 
-The screenshots and CSV export use the source at
-[`a39ed1e`](https://github.com/unwatcher/Plot_Digitizer/commit/a39ed1ebe3a25a5fc67a2d31391344327eb24b2f),
-which includes the top-left mode toggle and resizable manual sidebar. The
-published v0.3.0-preview.1 Windows ZIPs predate this layout change. Follow
-[Run from source](../README.md#run-from-source) to try the current layout.
+## Guided canvas and calibration bench
 
-## Automatic mode
+![PXRD image with the extracted trace, reviewed ticks and editable calibration table](images/calibration-bench.png)
 
-![Full-width automatic workspace with reviewed axis markers and extracted curve overlay](images/automatic-mode.png)
+## Linked review
 
-## Manual mode
-
-![Manual workspace with a controls sidebar and full-height plot preview](images/manual-mode.png)
+![Calibrated trace, data table and source-image detail showing the same selected peak](images/linked-review.png)
 
 ## Try the workflow
 
@@ -28,10 +24,12 @@ published v0.3.0-preview.1 Windows ZIPs predate this layout change. Follow
    differ by installed engine and language support.
 3. Choose **Auto Extraction**. Inspect the highlighted candidate, then choose
    **Add selected curve**. Here Autopilot selects Normal scan and threshold 160.
-4. Check the overlay. The top-left **Manual mode** button opens full-height
-   controls on the left; the same button becomes **Automatic mode** and restores
-   the full-width preview. Current calibration and extracted data are retained.
-5. Open **Digitized Data** to review the calibrated X/Y values.
+4. In **Guided canvas**, check the trace overlay. Open **Manual options** to
+   inspect the calibration bench. You can edit a tick value, drag its marker or
+   nudge it by one pixel. Choose **Apply calibration** to update the extracted
+   coordinates after editing.
+5. In **Linked review**, click a curve point or table row. The selected sample
+   appears in the trace, table and magnified source-image detail.
 6. Choose **Export → Export CSV** and save the result. The app confirms that
    563 points were written.
 
@@ -43,10 +41,10 @@ is intensity in counts for this PXRD example. Full floating-point values are
 preserved. The desktop data table rounds values for display.
 
 The [example metadata](../examples/workflow-demo.json) records the source
-commit, input/output hashes, calibration point counts, extraction settings and
-screenshot hashes and dimensions. This session uses a seven-tick X fit; the
-separate [static PXRD reference](../examples/pxrd-extraction.json) uses a
-two-tick X fit, so their exported coordinates differ slightly.
+commit, input/output hashes, reviewed calibration points, extraction settings
+and screenshot dimensions and hashes. This session uses a seven-tick X fit. The
+separate [static PXRD reference](../examples/pxrd-extraction.json) uses a two-tick
+X fit, so their exported coordinates differ slightly.
 
 The source figure is US8198452B2, Fig. 1. See the
 [example provenance and reuse note](../examples/README.md). The demonstration
@@ -54,8 +52,8 @@ is one reviewed example, not an independent accuracy or speed benchmark.
 
 ## Updating the screenshots
 
-The images are unmodified native application captures from the same CSV-export
-session. To update them, run the workflow above on the intended source revision,
-capture the overlay in both modes, and verify the exported CSV. Keep local
-paths out of published images and update the screenshots, CSV and metadata
+The images are Qt window captures from the same session as the CSV export.
+To update them, run the workflow above on the intended source revision and
+capture the calibration bench and linked review. Check the exported CSV, keep
+local paths out of the captures, and update the screenshots, CSV and metadata
 together.

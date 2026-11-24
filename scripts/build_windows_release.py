@@ -37,7 +37,8 @@ def source_files():
                      and "__pycache__" not in p.parts
                      and not any(part.startswith("._") for part in p.relative_to(ROOT).parts)
                      and (directory != "examples" or "patent_plots" in p.relative_to(ROOT).parts
-                          or p.name in {"README.md", "pxrd-extracted.csv", "pxrd-extraction.json"})
+                          or p.name in {"README.md", "pxrd-extracted.csv", "pxrd-extraction.json",
+                                        "workflow-demo.csv", "workflow-demo.json"})
                      and p.suffix.lower() in
                      {".py", ".ps1", ".bat", ".txt", ".json", ".md", ".png", ".csv"})
     return sorted(set(paths))

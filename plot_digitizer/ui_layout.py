@@ -8,9 +8,9 @@ from PySide6.QtWidgets import (
 )
 
 try:
-    from .ui_appearance import apply_window_appearance
+    from .ui_appearance import apply_window_appearance, highscore_palette
 except ImportError:
-    from ui_appearance import apply_window_appearance
+    from ui_appearance import apply_window_appearance, highscore_palette
 
 
 class FlowLayout(QLayout):
@@ -220,6 +220,10 @@ class AdaptiveDialog(QDialog):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        parent = self.parentWidget()
+        if parent is not None and parent.property("workstationTheme") == "highscore":
+            self.setProperty("workstationTheme", "highscore")
+            self.setPalette(highscore_palette(self.palette()))
         apply_window_appearance(self)
 
     @staticmethod
