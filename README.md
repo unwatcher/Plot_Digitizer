@@ -118,8 +118,8 @@ python plot_digitizer_auto.py
 The existing `plot_digitizer_auto.py` entry point is preserved. Source is
 organized in `plot_digitizer/`; no CrystalTrace installation or catalog is
 required. Windows uses its installed OCR language support. If that engine
-fails, an installed Tesseract on PATH is used. Linux needs Tesseract for
-automatic axis suggestions. Manual calibration works without OCR.
+fails, an installed Tesseract on PATH is used. macOS and Linux need Tesseract for automatic axis suggestions. See the
+[local OCR setup guide](docs/OCR.md). Manual calibration works without OCR.
 
 ## Handling difficult figures manually
 
